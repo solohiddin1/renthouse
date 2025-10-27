@@ -3,17 +3,17 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated , AllowAny
-from app.models import Arena
-from app.serializers_f.arena_serializer import ArenaSerializer
+from app.models import House
+from app.serializers_f.arena_serializer import HouseSerializer
 from rest_framework import status
 from app.models.owner import Owner
 
 
-class ArenaCreateView(APIView):
+class HouseCreateView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        print('creating arena', request.data)
+        print('creating house', request.data)
         owner = request.data.owner
         try:
             owner_user = Owner.object.get(pk=owner)
@@ -21,14 +21,14 @@ class ArenaCreateView(APIView):
             return Response({"error":"User does not exist"},status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error":str(e)},status=status.HTTP_400_BAD_REQUEST)
-        if owner_user.arena_count > 1:
-            return Response({"limit":"adding arena is limited!, please buy premium"})
-        serializer = ArenaSerializer(data=request.data)
+        if owner_user.house_count > 1:
+            return Response({"limit":"adding house is limited!, please buy premium"})
+        serializer = HouseSerializer(data=request.data)
         if serializer.is_valid():
-            arena = serializer.save()
-            arena.owner.arena_count += 1
-            arena.owner.save()
-            return Response(ArenaSerializer(arena).data, status=status.HTTP_201_CREATED)
+            house = serializer.save()
+            house.owner.house_count += 1
+            house.owner.save()
+            return Response(HouseSerializer(house).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     # else:
     #     return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -44,37 +44,37 @@ class ArenaCreateView(APIView):
 # }
 
 
-class ArenaListView(APIView):
+class HouseListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         try:
             owner = request.user
-            arena = Arena.objects.filter(owner=owner)
-            serializer = ArenaSerializer(arena, many=True)
+            house = House.objects.filter(owner=owner)
+            serializer = HouseSerializer(house, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
-            arena = Arena.objects.get(pk=pk)
-            serializer = ArenaSerializer(arena)
+            house = House.objects.get(pk=pk)
+            serializer = HouseSerializer(house)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Arena.DoesNotExist:
-            return Response({"error": "Arena not found"}, status=status.HTTP_404_NOT_FOUND)
-    
+        except House.DoesNotExist:
+            return Response({"error": "House not found"}, status=status.HTTP_404_NOT_FOUND)
+
     def put(self, request, pk):
         try:
-            arena = Arena.objects.get(pk=pk)
-            serializer = ArenaSerializer(arena, data=request.data, partial=True)
+            house = House.objects.get(pk=pk)
+            serializer = HouseSerializer(house, data=request.data, partial=True)
             if serializer.is_valid():
-                arena = serializer.save()
-                return Response(ArenaSerializer(arena).data, status=status.HTTP_200_OK)
+                house = serializer.save()
+                return Response(HouseSerializer(house).data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Arena.DoesNotExist:
+        except House.DoesNotExist:
             return Response({"error": "Arena not found"}, status=status.HTTP_404_NOT_FOUND)
     
     def delete(self, request, pk):
         try:
-            arena = Arena.objects.get(pk=pk)
-            arena.delete()
+            house = House.objects.get(pk=pk)
+            house.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except Arena.DoesNotExist:
-            return Response({"error": "Arena not found"}, status=status.HTTP_404_NOT_FOUND)
+        except House.DoesNotExist:
+            return Response({"error": "House not found"}, status=status.HTTP_404_NOT_FOUND)

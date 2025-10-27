@@ -9,7 +9,7 @@ from app.views.auth import (ChangePasswordView, LogoutApiView , ForgotPasswordVi
 from app.views.user import UserRegisterView , DeleteUser, GetAllUsers
 
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
-from app.views.arena import ArenaCreateView, ArenaListView
+from app.views.arena import HouseCreateView, HouseListView
 from app.views.owner import OwnerProfileView, OwnerRegisterView
 
 urlpatterns = [
@@ -25,8 +25,8 @@ urlpatterns = [
     path('owner_register/',OwnerRegisterView.as_view(),name='register_owner'),
     path('get_owner/',OwnerProfileView.as_view(),name='get_owner'),
 
-    path('add_arena/',ArenaCreateView.as_view(),name='add_arena'),
-    path('arena/<int:pk>/',ArenaListView.as_view(),name='arena_detail'),
+    path('add_house/',HouseCreateView.as_view(),name='add_house'),
+    path('house/<int:pk>/',HouseListView.as_view(),name='house_detail'),
 
     # users
     path('get_users/',GetAllUsers.as_view(),name='get_users'),

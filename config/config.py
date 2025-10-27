@@ -3,9 +3,10 @@ from pydantic import Field
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+# from house.settings import BASE_DIR
 
-
+# load_dotenv(os.path.join(BASE_DIR, 'config','.env'))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class Settings(BaseSettings):
     PHOTO_PATH: str
@@ -23,7 +24,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     DEBUG: str
 
-    ALLOWED_HOSTS: list[str] = Field(default_factory=list)
+    ALLOWED_HOSTS: str
+    # ALLOWED_HOSTS: list[str] = Field(default_factory=list)
     
     # email
     EMAIL_HOST: str
@@ -40,7 +42,8 @@ class Settings(BaseSettings):
     LANGUAGE_CODE: str
 
     class Config:
-        env_file = ".env"
+        env_file = os.path.join(BASE_DIR,'config', '.env')
+        env_file_encoding = "utf-8"
     
 
 settings = Settings()

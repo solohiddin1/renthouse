@@ -3,7 +3,7 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-
+from django.contrib.auth.hashers import make_password
 
 # Create your models here.
 
@@ -47,6 +47,8 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, default=None)
     phone_number = models.CharField(validators=[phone_regex], max_length=13, unique=True)
     email_verified = models.BooleanField(default=False)
+    call_from = models.TimeField(help_text="Start time when user can receive calls",blank=True,null=True)
+    call_to = models.TimeField(help_text="End time when user can receive calls",blank=True,null=True)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
@@ -63,3 +65,11 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
     @property
     def is_superuser(self):
         return self.is_admin
+    
+    def save(self, *args, **kwargs):
+        if not self.password.startswith('pbkdf2_'):  # not hashed yet
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
+
+    def check_password(self, raw_password):
+        return super().check_password(raw_password)
