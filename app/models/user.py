@@ -4,15 +4,9 @@ from django.db import models
 from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.contrib.auth.hashers import make_password
+from .house import BaseModel
 
 # Create your models here.
-
-class BaseModel(models.Model):
-    created_at = models.DateField(auto_now_add=True,null=True)
-    updated_at = models.DateField(auto_now=True,null=True)
-
-    class Meta:
-        abstract = True
 
 
 class CustomUserManager(BaseUserManager):
@@ -39,13 +33,14 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(BaseModel,AbstractBaseUser, PermissionsMixin):
-    phone_regex = RegexValidator(
-        regex=r'^\+998\d{9}$',
-        message="Telefon raqam '+998XXXXXXXXX' formatida bo'lishi kerak!"
-    )
+    # phone_regex = RegexValidator(
+    #     regex=r'^\+998\d{9}$',
+    #     message="Telefon raqam '+998XXXXXXXXX' formatida bo'lishi kerak!"
+    # )
     name = models.CharField(max_length=255,null=True)
     email = models.EmailField(unique=True, default=None)
-    phone_number = models.CharField(validators=[phone_regex], max_length=13, unique=True)
+    phone_number = models.CharField(max_length=13, unique=True)
+    # phone_number = models.CharField(validators=[phone_regex], max_length=13, unique=True)
     email_verified = models.BooleanField(default=False)
     call_from = models.TimeField(help_text="Start time when user can receive calls",blank=True,null=True)
     call_to = models.TimeField(help_text="End time when user can receive calls",blank=True,null=True)

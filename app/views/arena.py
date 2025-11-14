@@ -7,13 +7,16 @@ from app.models import House
 from app.serializers_f.arena_serializer import HouseSerializer
 from rest_framework import status
 from app.models.owner import Owner
+from rest_framework import generics
 
 
-class HouseCreateView(APIView):
+
+class HouseCreateView(generics.CreateAPIView):
     permission_classes = [AllowAny]
+    serializer_class = HouseSerializer
 
     def post(self, request):
-        owner = request.data.owner
+        owner = request.data.get('owner')
         try:
             owner_user = Owner.object.get(pk=owner)
         except Owner.DoesNotExist:
@@ -44,20 +47,20 @@ class HouseCreateView(APIView):
 
 
 class HouseListView(APIView):
-    permission_classes = [IsAuthenticated]
-
+    permission_classes = [AllowAny]
+    # permission_classes = [IsAuthenticated]
+    serializer_class = HouseSerializer
     def get(self, request, pk):
         try:
-            owner = request.user
-            house = House.objects.filter(owner=owner)
-            serializer = HouseSerializer(house, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
+            # owner = request.user
+            # house = House.objects.all()
+            # house = House.objects.filter(owner=owner)
             house = House.objects.get(pk=pk)
-            serializer = HouseSerializer(house)
-            return Response(serializer.data, status=status.HTTP_200_OK)
         except House.DoesNotExist:
             return Response({"error": "House not found"}, status=status.HTTP_404_NOT_FOUND)
+        # except Exception as e:
+        serializer = HouseSerializer(house, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
         try:

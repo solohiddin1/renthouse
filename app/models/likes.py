@@ -1,10 +1,9 @@
 from django.db import models
+from .house import BaseModel
 
-
-class Like(models.Model):
+class Like(BaseModel):
     user = models.ForeignKey("User", on_delete=models.CASCADE)
     house = models.ForeignKey("House", on_delete=models.CASCADE, related_name='likes')
-    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'house')
