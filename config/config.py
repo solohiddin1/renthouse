@@ -41,7 +41,8 @@ class Settings(BaseSettings):
     LANGUAGE_CODE: str
 
     class Config:
-        env_file = os.path.join(BASE_DIR,'config', '.env')
+        env_file = ".env"
+        # env_file = os.path.join(BASE_DIR,'config', '.env')
         env_file_encoding = "utf-8"
     
 
