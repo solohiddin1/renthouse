@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -16,10 +16,15 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from django.core.cache import cache
-# from drf_yasg.utils import swagger_auto_schema
 from app.serializers_f.email_serializers import SendEmail, LoginSerializer
 from app.serializers_f.user_serializer import LoginUserSerializer, ChangePasswordSerializer
-# from app.serializers_f.student_serizlizer import StudentSerializer
+from django.utils.http import urlsafe_base64_decode
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from django.contrib.auth.tokens import PasswordResetTokenGenerator, default_token_generator
+from app.utils import generate_reset_password_link
+
 
 
 # #@swagger_auto_schema(method='post', request_body=LoginSerializer)
@@ -80,7 +85,6 @@ def userlogin_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def userlogin(request):
-    # Handle both JSON and form data
     if request.content_type == 'application/json':
         data = request.data
     else:
@@ -90,19 +94,13 @@ def userlogin(request):
         }
     
     serializer = LoginUserSerializer(data=data)
-    print('user here')
     if serializer.is_valid():
-        print('user here2 ---')
         email = serializer.validated_data.get("email", "").strip().lower()
         password = serializer.validated_data.get("password", "").strip()
-        print(email,password,'email password ---')
-        print(f"[{email}], [{password}]")
         user = authenticate(request, email=email, password=password)
-        print(user)
         if user:
             otp = random.randint(1000, 9999)
             cache.set(email,otp,timeout=300)
-            print("start email")
             send_mail(
                  "Your code sent",
                     f"Your code is {otp}. It is valid for 5 minutes.",
@@ -240,17 +238,6 @@ class ForgotPasswordView(APIView):
         return Response({"error":serializer.errors})
 
 
-
-
-
-# from django.contrib.auth.models import User
-from django.utils.http import urlsafe_base64_decode
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from django.contrib.auth.tokens import PasswordResetTokenGenerator, default_token_generator
-from app.utils import generate_reset_password_link
-
 token_generator = PasswordResetTokenGenerator()
 
 def forgot_password_view(request):
@@ -352,44 +339,37 @@ def student_dashboard(request):
 
 
 #@swagger_auto_schema(method='post', request_body=LoginUserSerializer)
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def loginexistinguser(request):
-    serializer = LoginUserSerializer(data=request.data)
-    print('user here')
-    if serializer.is_valid():
-        print('user here2 ---')
-        email = serializer.validated_data.get("email", "").strip().lower()
-        try:
-            userin = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return Response({"error":"User not found"})
-        # if userin is None:
-        #     return Response({"error":"User not found!"},status=status.HTTP_404_NOT_FOUND)
-        password = serializer.validated_data.get("password", "").strip()
-        print(email,password,'email password ---')
+
+class LoginExistingUser(APIView):
+    def post(self, request):
+        serializer = LoginUserSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data.get("email", "").strip().lower()
+            try:
+                userin = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return Response({"error":"User not found"})
+            # if userin is None:
+            #     return Response({"error":"User not found!"},status=status.HTTP_404_NOT_FOUND)
+            password = serializer.validated_data.get("password", "").strip()
+            
+            user = authenticate(request=request._request, email=email, password=password)
+            if user is None:
+                return Response({"error":"Invalid credentials"},status=status.HTTP_400_BAD_REQUEST)
+            if not userin.email_verified:
+                return Response({"error": "email is not verified"}, status=status.HTTP_400_BAD_REQUEST)
         
-        user = authenticate(request=request._request, email=email, password=password)
-        print(user,'tthis user is good')
-        print(userin,'userin -------- here ')
-        if user is None:
-            return Response({"error":"Invalid credentials"},status=status.HTTP_400_BAD_REQUEST)
-        if not userin.email_verified:
-            return Response({"error": "email is not verified"}, status=status.HTTP_400_BAD_REQUEST)
-    
-        if user:
-            django_login(request._request, user)  # Log the user in
-            refresh = RefreshToken.for_user(user)
-            role = 'admin' if userin.is_admin  else 'User' 
-            refresh['role'] = role
-            print(role)
-            print(refresh)
-            return Response({
-                'success': True, 
-                'message': 'user logged in successfully.', 
-                'role': role,
-                'access': str(refresh.access_token), 
-                'refresh': str(refresh)})
-        
-        return Response({'success': False, 'message': 'Invalid credentials.'}, status=400)
-    return Response(serializer.errors, status=400)
+            if user:
+                django_login(request._request, user)  # Log the user in
+                refresh = RefreshToken.for_user(user)
+                role = 'admin' if userin.is_admin  else 'User' 
+                refresh['role'] = role
+                return Response({
+                    'success': True, 
+                    'message': 'user logged in successfully.', 
+                    'role': role,
+                    'access': str(refresh.access_token), 
+                    'refresh': str(refresh)})
+            
+            return Response({'success': False, 'message': 'Invalid credentials.'}, status=400)
+        return Response(serializer.errors, status=400)

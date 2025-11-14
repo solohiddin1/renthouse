@@ -2,8 +2,7 @@ from django.urls import path
 from app.views.admin import TeacherCrud, admin_panel, teacher_panel
 # from app.views.mock_data import MockDataActiveStudents, MockDataFinished, MockDataView, MockTwoCount
 from app.views.auth import (ChangePasswordView, LogoutApiView , ForgotPasswordView,
-    home, reset_page, reset_password, student_dashboard, userlogin, userlogin_view, loginexistinguser,
-    loginexistinguser_view, verify_user_email_view,
+    home, reset_page, reset_password, student_dashboard, userlogin, userlogin_view, LoginExistingUser,
     verify, login, VerifyOtpView, )
 
 from app.views.user import UserRegisterView , DeleteUser, GetAllUsers
@@ -35,7 +34,7 @@ urlpatterns = [
     path('userlogin/',userlogin,name='userlogin'),
     path('userlogin/view/',userlogin_view,name='userlogin_view'),
 
-    path('login_existing_user/',loginexistinguser,name='login_existing_user'),
+    path('login_existing_user/',LoginExistingUser.as_view(),name='login_existing_user'),
     # path('login_existing_user/view',loginexistinguser_view,name='login_existing_user_view'),
 
 

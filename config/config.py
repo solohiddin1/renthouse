@@ -19,7 +19,6 @@ class Settings(BaseSettings):
     DATABASE_HOST: str
     DATABASE_PORT: str
     DATABASE_ENGINE: str
-    
     # django
     SECRET_KEY: str
     DEBUG: str

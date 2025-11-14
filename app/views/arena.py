@@ -13,7 +13,6 @@ class HouseCreateView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        print('creating house', request.data)
         owner = request.data.owner
         try:
             owner_user = Owner.object.get(pk=owner)
