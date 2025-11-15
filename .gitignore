@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 venv/
 static/
+.vscode/
+.DS_Store
+.idea/
