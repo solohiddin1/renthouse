@@ -68,3 +68,12 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
 
     def check_password(self, raw_password):
         return super().check_password(raw_password)
+    
+
+class UserOTP(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otps')
+    otp_code = models.CharField(max_length=6)
+    is_used = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"OTP for {self.user.email} - {'Used' if self.is_used else 'Unused'}"
